@@ -1,0 +1,48 @@
+<div class="panel">
+  <div class="form-inline">
+    <mat-form-field color="accent">
+      <input type="text" matInput ngxDaterangepickerMd [locale]="{applyLabel: 'ok', format: 'DD-MM-YYYY'}" startKey="start" endKey="end"
+        [(ngModel)]="selected" name="daterange" />
+    </mat-form-field>
+    <input #input maxlength="4" placeholder="Enter asset name (ETH)" [(ngModel)]="asset">
+    <div class="form-group">
+      <div class="col-md-offset-2 col-md-8">
+        <button class="btn btn-default" (click)="download()">Save csv</button>
+      </div>
+    </div>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>time</th>
+        <th>exchange</th>
+        <th>pair</th>
+        <th>price</th>
+        <th>fee</th>
+        <th>size</th>
+        <th>type order</th>
+        <td>deviation Price</td>
+        <th>id arbitrage order</th>
+        <th>id exchange order</th>
+        <th>Status order</th>
+        <th>reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>{{order.time | date: 'mediumTime'}}</td>
+        <td>{{order.exchange}}</td>
+        <td>{{order.pair}}</td>
+        <td>{{order.price}}</td>
+        <td>{{order.fee}}</td>
+        <td>{{order.size}}</td>
+        <td>{{order.typeOrder}}</td>
+        <td>{{order.deviationPrice}}</td>
+        <td>{{order.arbitrageId}}</td>
+        <th>{{order.exchangeId}}</th>
+        <th>{{order.status}}</th>
+        <th>{{order.reason}}</th>
+      </tr>
+    </tbody>
+    </table>
+</div>

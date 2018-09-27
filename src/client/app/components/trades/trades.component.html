@@ -1,0 +1,41 @@
+<div class="panel">
+  <div class="form-inline">
+    <mat-form-field color="accent">
+      <input type="text" matInput ngxDaterangepickerMd [locale]="{applyLabel: 'ok', format: 'DD-MM-YYYY'}" startKey="start" endKey="end"
+        [(ngModel)]="selected" name="daterange" />
+    </mat-form-field>
+    <input #input maxlength="4" placeholder="Enter asset name (ETH)" [(ngModel)]="asset">
+    <div class="form-group">
+      <div class="col-md-offset-2 col-md-8">
+        <button class="btn btn-default" (click)="download()">Save csv</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>time</th>
+        <th>exchange</th>
+        <th>pair</th>
+        <th>price</th>
+        <th>volume</th>
+        <th>type order</th>
+        <th>id order</th>
+        <th>id exchange order</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of items">
+        <td>{{item.time | date: 'mediumTime'}}</td>
+        <td>{{item.exchange}}</td>
+        <td>{{item.pair}}</td>
+        <td>{{item.price}}</td>
+        <td>{{item.volume}}</td>
+        <td>{{item.typeOrder}}</td>
+        <td>{{item.arbitrageId}}</td>
+        <td>{{item.exchOrderId}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

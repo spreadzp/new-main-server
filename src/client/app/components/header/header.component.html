@@ -1,0 +1,51 @@
+<mat-nav-list>
+  <mat-list-item *ngFor="let section of nav.sections">
+    <a class="nav-section" [routerLink]="section.link" mat-ripple>
+      {{section.title}}
+    </a>
+  </mat-list-item>
+</mat-nav-list>
+<div>
+  <a  class="btn collapse-btn btn-outline-primary" (click)="isCollapsedW = !isCollapsedW" [attr.aria-expanded]="!isCollapsedW"
+    aria-controls="collapseExample">
+    Working matrixes
+  </a>
+
+  <div id="collapseExample" [ngbCollapse]="!isCollapsedW">
+    <div class="card">
+      <div *ngFor="let section of navMatrix.sections" class="card-body">
+        <a class="dropdown-item" [routerLink]="section.link"> {{section.title}}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <a  class="btn collapse-btn btn-outline-primary" (click)="isCollapsedP = !isCollapsedP" [attr.aria-expanded]="!isCollapsedP"
+    aria-controls="collapsePaper">
+    Paper matrixes
+</a>
+
+  <div id="collapsePaper" [ngbCollapse]="!isCollapsedP">
+    <div class="card">
+      <div *ngFor="let section of navMatrix.sections" class="card-body">
+        <a class="dropdown-item" [routerLink]="section.link"> {{section.title}}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <a class="btn collapse-btn btn-outline-primary" (click)="isCollapsedH = !isCollapsedH" [attr.aria-expanded]="!isCollapsedH"
+    aria-controls="collapseHistory">
+    History matrixes
+  </a>
+
+  <div id="collapseHistory" [ngbCollapse]="!isCollapsedH">
+    <div class="card">
+      <div *ngFor="let section of navMatrix.sections" class="card-body">
+        <a class="dropdown-item" [routerLink]="section.link"> {{section.title}}</a>
+      </div>
+    </div>
+  </div>
+</div>

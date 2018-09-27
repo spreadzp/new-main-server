@@ -1,0 +1,70 @@
+<mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+  <mat-button-toggle value="bold" (click)="startTcp()">Get order book</mat-button-toggle>
+  <mat-button-toggle value="italic" (click)="stopTcp()">Stop order book</mat-button-toggle>
+</mat-button-toggle-group>
+
+  <mat-table  [dataSource]="dataSourcePrice" class="lessons-table mat-elevation-z8">
+    <!-- Checkbox Column -->
+    <ng-container matColumnDef="time">
+     <mat-header-cell *matHeaderCellDef>time</mat-header-cell>
+     <mat-cell *matCellDef="let item">{{item.time | date: 'mediumTime'}}</mat-cell>
+ </ng-container>
+
+ <ng-container matColumnDef="exchange">
+  <mat-header-cell *matHeaderCellDef>exchange</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.exchange}}</mat-cell>
+</ng-container>
+ 
+ <ng-container matColumnDef="pair">
+     <mat-header-cell *matHeaderCellDef>pair</mat-header-cell>
+     <mat-cell class="description-cell"
+               *matCellDef="let item">{{item.pair}}</mat-cell>
+ 
+ </ng-container>
+ 
+ <ng-container matColumnDef="bid">
+     <mat-header-cell *matHeaderCellDef>bid</mat-header-cell>
+     <mat-cell class="duration-cell"
+               *matCellDef="let item">{{item.bids | number:'1.1-2'}}</mat-cell>
+ </ng-container>
+
+ <ng-container matColumnDef="bidVolume">
+  <mat-header-cell *matHeaderCellDef>bidVolume</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.bidVolumes | number:'1.1-3'}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="ask">
+  <mat-header-cell *matHeaderCellDef>ask</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.asks | number:'1.1-2'}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="askVolume">
+  <mat-header-cell *matHeaderCellDef>askVolume</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.askVolumes | number:'1.1-3'}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="spread">
+  <mat-header-cell *matHeaderCellDef>spread</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.spread | number:'1.1-5'}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="status">
+  <mat-header-cell *matHeaderCellDef>status</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.status}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="host">
+  <mat-header-cell *matHeaderCellDef>host</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.host}}</mat-cell>
+</ng-container>
+
+<ng-container matColumnDef="port">
+  <mat-header-cell *matHeaderCellDef>port</mat-header-cell>
+  <mat-cell *matCellDef="let item">{{item.port}}</mat-cell>
+</ng-container>
+ 
+ <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+ 
+ <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+ 
+ </mat-table> 

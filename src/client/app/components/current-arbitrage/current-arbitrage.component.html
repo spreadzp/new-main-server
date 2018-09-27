@@ -1,0 +1,130 @@
+<mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+    <mat-button-toggle value="bold" (click)="arbitrageTwo()">Start arbitrage</mat-button-toggle>
+    <mat-button-toggle value="bold" (click)="stopNewArbitrage()">Stop new arbitrage</mat-button-toggle>
+    <mat-button-toggle value="italic" (click)="arbitrageMoreTwo()">Arbitrage more 2 exchanges</mat-button-toggle>
+  </mat-button-toggle-group>
+<mat-table #myname [dataSource]="dataSourcePrice" class="example-container mat-elevation-z8">
+  <!-- Checkbox Column -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef>id</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.arbitrageId}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="exSell">
+    <mat-header-cell *matHeaderCellDef>exSell</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openSellTrade.exchange}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="sellPair">
+    <mat-header-cell *matHeaderCellDef>pair</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openSellTrade.pair}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="sellPrice">
+    <mat-header-cell *matHeaderCellDef>sell</mat-header-cell>
+    <mat-cell *matCellDef="let item">
+      {{item.firstCircle.openSellTrade.price | number:'1.1-2'}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="sellVolume">
+    <mat-header-cell *matHeaderCellDef>Vol</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openSellTrade.size | number:'1.1-3'}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="exBuy">
+    <mat-header-cell *matHeaderCellDef>exBuy</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openBuyTrade.exchange}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="buyPair">
+    <mat-header-cell *matHeaderCellDef>pair</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openBuyTrade.pair}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="buyPrice">
+    <mat-header-cell *matHeaderCellDef>buy</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{
+      item.firstCircle.openBuyTrade.price | number:'1.1-2'}}</mat-cell>
+  </ng-container>
+
+
+  <ng-container matColumnDef="buyVolume">
+    <mat-header-cell *matHeaderCellDef>Vol</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.firstCircle.openBuyTrade.size | number:'1.1-3'}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="1 circle profit">
+    <mat-header-cell *matHeaderCellDef>1 profit</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{
+      item.firstCircle.openSellTrade.price -
+      item.firstCircle.openBuyTrade.price | number:'1.1-2'
+      }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeExSell">
+    <mat-header-cell *matHeaderCellDef>closeExSell</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeSellTrade.exchange}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closePair">
+    <mat-header-cell *matHeaderCellDef>pair</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeSellTrade.pair}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeExSellPrice">
+    <mat-header-cell *matHeaderCellDef>closeSell</mat-header-cell>
+    <mat-cell *matCellDef="let item">
+      {{
+      item.secondCircle.closeSellTrade.price | number:'1.1-2'
+      }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeSellVolume">
+    <mat-header-cell *matHeaderCellDef>Volume</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeSellTrade.size | number:'1.1-3'}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeExBuy">
+    <mat-header-cell *matHeaderCellDef>closeExBuy</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeBuyTrade.exchange}}</mat-cell>
+  </ng-container>
+
+
+  <ng-container matColumnDef="closeBuyPair">
+    <mat-header-cell *matHeaderCellDef>pair</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeBuyTrade.pair}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeBuyPrice">
+    <mat-header-cell *matHeaderCellDef>closeBuy</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{ item.secondCircle.closeBuyTrade.price  | number:'1.1-2' }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="closeBuyVolume">
+    <mat-header-cell *matHeaderCellDef>Volume</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{item.secondCircle.closeBuyTrade.size | number:'1.1-3'}}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="total profit">
+    <mat-header-cell *matHeaderCellDef>All profit</mat-header-cell>
+    <mat-cell *matCellDef="let item">{{
+      item.firstCircle.openSellTrade.price  -
+      item.firstCircle.openBuyTrade.price  +
+      item.secondCircle.closeBuyTrade.price  -
+      item.secondCircle.closeSellTrade.price  | number:'1.1-2'
+      }}</mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="close">
+    <mat-header-cell *matHeaderCellDef>close</mat-header-cell>
+    <mat-cell *matCellDef="let item">
+      <button mat-button (click)="closeSecondCircle(item)">
+        {{'Close orders'}}</button>
+    </mat-cell>
+
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+  <app-current-trade></app-current-trade>
+</mat-table>

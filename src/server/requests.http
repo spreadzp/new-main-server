@@ -1,0 +1,229 @@
+GET https://forex.1forge.com/1.0.3/quotes?pairs=EURUSD,GBPJPY,AUDUSD&api_key=bfBuXo30skEAA0ES4Wz3lNQksUjcTuce
+
+GET https://forex.1forge.com/1.0.3/quota?api_key=bfBuXo30skEAA0ES4Wz3lNQksUjcTuce
+
+GET https://forex.1forge.com/1.0.3/symbols?api_key=bfBuXo30skEAA0ES4Wz3lNQksUjcTuce 
+
+google-chrome --remote-debugging-port=9222
+
+Get http://104.236.46.56:3000/sever-tcp/start-server
+Get http://104.236.46.56:3000:3000/sever-tcp/stop-server
+Get http://localhost:3000/sever-tcp/start-server
+Get http://localhost:3000/sever-tcp/stop-server
+
+Get https://api.coinmarketcap.com/v2/ticker/2546/
+
+Get http://localhost:3000/sever-tcp/user-balance
+Get http://localhost:3000/orderBooks/order-books/3
+
+Get http://localhost:3001/orderBooks/order-books/?startDate=1530738000000&endDate=1530740800000
+Get http://localhost:3001/orderBooks/order-books/?startDate=1534021200000&endDate=1534539599000&asset=BTC
+Get http://localhost:3000/orderBooks/order-books/?startDate=1531902533100&endDate=1531903600158&asset=.*
+Get https://testnet.gateway.proximax.io/node/info
+
+Get https://mijinnet.gateway.proximax.io/node/info
+
+Get https://testnet3.gateway.proximax.io/node/info
+Get http://localhost:3001/sever-tcp/current-spread
+
+Get https://mainnet.gateway.proximax.io/node/info
+Get https://dev.gateway.proximax.io/node/info
+
+Get http://localhost:3000/orders/all
+ & 1535057999000
+Get http://localhost:3001/orderBooks/order-books/?startDate=1533416400000&endDate=1535057999000&asset=BTC&skip=40000
+Get http://localhost:3000/orders/find/?startDate=1534021200000&endDate=1534539599000
+Get http://localhost:3001/trades/statistic/?startDate=1534958636164&endDate=1534961638161&asset=BTC&typeOrder=sell
+Get http://localhost:3001/?id=ouiu&second-status=false
+Get http://localhost:3000/trades/all
+POST http://localhost:3000/orderBooks/create HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchangeName": "bitfinex",
+    "pair": "BTC-GDP",
+    "bid": 6201.56,
+    "ask": 6215.15,
+    "time": "1530262758920"
+}
+
+POST http://localhost:3000/orders/save HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchange": "bitfinex",
+    "pair": "BTC-GDP",
+    "price": 6200.56,
+    "volume": 1,
+    "typeOrder": "buy", 
+    "fee": 0.2,
+    "arbitrageId": "euifuihfio",
+    "deviationPrice": 0.05, 
+    "time": "1531474565317"
+}
+
+POST http://localhost:3001/rates/create HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchangeName": "bitfinex", 
+   "makerFee": 0.02,
+   "takerFee": 0.1
+}
+
+POST http://localhost:3001/rates/save HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchangeName": "bittrex", 
+   "makerFee": 0.025,
+   "takerFee": 0.1
+}
+
+POST http://localhost:3001/rates/save HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchangeName": "hitbtc", 
+   "makerFee": 0.025,
+   "takerFee": 0.1
+}
+
+Get http://localhost:3001/rates/all
+
+GET http://localhost:8888/v1/wallet/EOS6z87aEYnSaLXt4GfgX4WRXM9g44zU7N84FFkxKJ1pByCc1AzX7
+
+
+Get http://localhost:3001/arbitrages/all
+
+POST http://localhost:3001/arbitrages/save HTTP/1.1
+content-type: application/json
+
+{ 
+   "arbitrageId": "e614eb44-522a-b6ba-3895-5deac1417e71",
+  "balanceVolume": 18,
+  "assetVolume": 55,
+  "asset": "BTC",
+  "closeSecondCickle": false
+}
+ 
+Get http://localhost:3001/arbitrages/noclosed/?closeSecond=false
+Get http://localhost:3001/trades/find-by-id/?id[]=e614eb44-522a-b6ba-3895-5deac1417e71&id[]=a48f61fe-9c72-e362-cfbe-35ddf1c1493e
+Get http://localhost:3001/sever-tcp/exchange-price/?exchange=hitbtc&pair=BTC-USDT&typeOrder=sell
+
+POST http://localhost:3001/arbit-balance/save HTTP/1.1
+content-type: application/json
+
+{ 
+   "arbitrageId": "e1cee59f-a149-749e-efde-1f8511b2e274",
+    "firstCickleBuy": null,
+    "firstCickleSell": null,
+    "secondCickleBuy": [{}],
+    "secondCickleSell": [{}],
+    "closeSecondCickle": false
+}
+
+Get http://localhost:3001/arbit-balance/noclosed/?closeSecond=false
+
+
+
+POST http://localhost:3001/arbit-balance/add-new-trade HTTP/1.1
+content-type: application/json
+
+{ 
+    "arbitId": "5de2d6b1-0b92-bb6b-d9db-1fc692fe810a",
+    "closeTrade": { "price": 789, "size": 50, "typeOrder": "buy", "exchange": "hitbtc", "pair": "BTC-USD", "exchangeId": "6666" }
+}
+
+Get http://localhost:3001/sever-tcp/current-arbitrages
+Get http://localhost:3001/rates/rate-exchange/?exchange=hitbtc&typeRate=taker
+Get http://localhost:3001/rates/all
+
+POST http://localhost:3001/sever-tcp/close-second-arbitrage HTTP/1.1
+content-type: application/json
+
+{ 
+   "arbitId": "54622702-db80-1bc6-2d50-62e44d7b34b0",
+   "trades": [
+       { "price": 789, "size": 1, "typeOrder": "buy", "exchange": "bitfinex", "pair": "BTC-USD", "exchangeId": "6666" },
+       { "price": 789, "size": 1, "typeOrder": "sell", "exchange": "hitbtc", "pair": "BTC-USDT", "exchangeId": "6666" }
+   ]
+}
+
+
+
+POST http://104.236.46.56:3001/sever-tcp/close-second-arbitrage HTTP/1.1
+content-type: application/json
+
+{ 
+   "arbitId": "6a104e73-ece1-a709-6695-36541872bf68",
+   "trades": [
+       { "price": 789, "size": 1, "typeOrder": "sell", "exchange": "bitfinex", "pair": "BTC-USD", "exchangeId": "6666" },
+       { "price": 789, "size": 1, "typeOrder": "buy", "exchange": "hitbtc", "pair": "BTC-USDT", "exchangeId": "6666" }
+   ]
+}
+
+Get http://localhost:3001/sever-tcp/current-arbitrages
+
+Get http://localhost:3001/matrix/available
+Get http://localhost:3001/matrixs/history
+Get http://localhost:4200/export
+
+POST http://localhost:3001/matrix/create HTTP/1.1
+content-type: application/json
+
+{ 
+    "name": "String",
+    "userId": "584fe811ed936fe74d8b466f", 
+    "deltas": [{
+        "from": "584fe811ed936fe74d8b466f", 
+        "to": "584fe811ed936fe74d8b466f", 
+        "deltaOpen": 5,
+        "deltaClose": 2
+    }],
+
+    "instruments": [{
+        "tradeAccount": "584fe811ed936fe74d8b466f", 
+        "exchangeId": "584fe811ed936fe74d8b466f",
+        "pair": "String",
+        "server": "String",   
+        "balance": {"fiat": 1000, "crypto": 10},
+        "balancePaper": {"fiat": 10000, "crypto": 100}
+    }],      
+    "deviation": 0.5,
+    "lotStep": 0.1,
+    "active":  true, 
+    "paper":   false,   
+    "history": false 
+} 
+
+POST http://localhost:3001/matri/delete HTTP/1.1
+content-type: application/json
+
+{ 
+    "name": "String",
+    "userId": "584fe811ed936fe74d8b466f", 
+    "deltas": [{
+        "from": "584fe811ed936fe74d8b466f", 
+        "to": "584fe811ed936fe74d8b466f", 
+        "deltaOpen": 5,
+        "deltaClose": 2
+    }],
+
+    "instruments": [{
+        "tradeAccount": "584fe811ed936fe74d8b466f", 
+        "exchangeId": "584fe811ed936fe74d8b466f",
+        "pair": "String",
+        "server": "String",   
+        "balance": {"fiat": 1000, "crypto": 10},
+        "balancePaper": {"fiat": 10000, "crypto": 100}
+    }],      
+    "deviation": 0.5,
+    "lotStep": 0.1,
+    "active":  true, 
+    "paper":   false,   
+    "history": false 
+}
+
+Get http://localhost:3001/matrix/available
+Get http://localhost:3001/rates/all

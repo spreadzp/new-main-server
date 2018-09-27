@@ -1,0 +1,6 @@
+<a class="list-group-item" cursor="pointer"> 
+  {{ rate.exchangeName }} ({{ rate.makerFee }}) ({{ rate.takerFee }})
+  <button type="button"
+    class="btn btn-danger pull-right btn-small"
+    (click)="onRemoveRate()">Remove</button>
+</a>

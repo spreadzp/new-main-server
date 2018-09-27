@@ -1,0 +1,54 @@
+<mat-button-toggle-group name="fontStyle" aria-label="Font Style">
+  <mat-button-toggle value="bold" (click)="createNewMatrix()">Create new matrix</mat-button-toggle>
+  <mat-button-toggle value="italic" (click)="removeMatrix()">Remove matrix</mat-button-toggle>
+</mat-button-toggle-group>
+
+<div class="container">
+  <ngb-tabset>
+    <ngb-tab title="Tab1">
+      <ng-template ngbTabContent>
+        <p class="mt-4">Content for tab 1.
+          <button type="button" class="btn btn-secondary" placement="bottom" ngbPopover="A popover in tab 1"
+            popoverTitle="Content tab1">
+            Click me
+          </button>
+        </p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab2">
+      <ng-template ngbTabContent>
+        <p>Content for tab 2</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 3</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 4</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 5</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 6</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 7</p>
+      </ng-template>
+    </ngb-tab>
+    <ngb-tab title="Tab3">
+      <ng-template ngbTabContent>
+        <p>Content for tab 8</p>
+      </ng-template>
+    </ngb-tab>
+  </ngb-tabset>
+</div>

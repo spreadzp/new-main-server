@@ -1,0 +1,17 @@
+<div class="panel">
+  <div class="form-inline">
+    <mat-form-field color="accent">
+      <input type="text" matInput ngxDaterangepickerMd [locale]="{applyLabel: 'ok', format: 'DD-MM-YYYY'}" startKey="start" endKey="end"
+        [(ngModel)]="selected" name="daterange" />
+    </mat-form-field> 
+    <input #input maxlength="4" placeholder="Enter asset name (ETH)" [(ngModel)]="asset"/>
+    <span>
+      <button class="btn btn-default control" (click)="download()">Save csv</button>
+    </span>
+    <span>
+      <input type="number" #input maxlength="4" placeholder="Enter timestamp" [(ngModel)]="timestamp" />
+    </span>
+    <span>
+      <button class="btn btn-default control" (click)="getDataTimeStamp(timestamp)">Save timestamp data</button>
+    </span>
+  </div>
