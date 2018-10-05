@@ -1,13 +1,13 @@
-import { OrderBookDto } from './dto/orderBook.dto';
+import { OrderBookDto } from './../orderBook/dto/orderBook.dto';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { OrderBook } from '../../common/models/orderBook';
-import { ORDER_BOOK_MODEL_TOKEN } from './../../../server.constants';
+import { ORDER_5_BOOK_MODEL_TOKEN } from './../../../server.constants';
 
 @Injectable()
-export class OrderBookService {
-  constructor(@InjectModel(ORDER_BOOK_MODEL_TOKEN) private readonly orderBookModel: Model<OrderBook>) { }
+export class Order5BookService {
+  constructor(@InjectModel(ORDER_5_BOOK_MODEL_TOKEN) private readonly orderBookModel: Model<OrderBook>) { }
 
   async create(createOrderBookDto: OrderBookDto) {
     const createdOrderBook = new this.orderBookModel(createOrderBookDto);

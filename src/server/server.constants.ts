@@ -17,6 +17,7 @@ export const TRADE_MODEL_TOKEN: string = 'Trade';
 export const EXCHANGE_MODEL_TOKEN: string = 'Exchange';
 export const ARBITRAGE_MODEL_TOKEN: string = 'Arbitrage';
 export const ARBITRAGE_BALANCE_MODEL_TOKEN: string = 'ArbitrageBalance';
+export const ORDER_5_BOOK_MODEL_TOKEN: string = 'Order5Book';
 
 
 export const MESSAGES = {

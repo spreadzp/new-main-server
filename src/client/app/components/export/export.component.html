@@ -5,13 +5,19 @@
         [(ngModel)]="selected" name="daterange" />
     </mat-form-field> 
     <input #input maxlength="4" placeholder="Enter asset name (ETH)" [(ngModel)]="asset"/>
-    <span>
+    <!-- <span>
       <button class="btn btn-default control" (click)="download()">Save csv</button>
-    </span>
+    </span> -->
     <span>
       <input type="number" #input maxlength="4" placeholder="Enter timestamp" [(ngModel)]="timestamp" />
     </span>
     <span>
       <button class="btn btn-default control" (click)="getDataTimeStamp(timestamp)">Save timestamp data</button>
+    </span>
+    <span>
+      <input type="number" #input min="5000" max="100000" step="5000" maxlength="6" placeholder="Enter timestamp" [(ngModel)]="timestamp5" />
+    </span>
+    <span>
+      <button class="btn btn-default control" (click)="getDataFiveTimeStamp(timestamp5)">Save data time multiple 5</button>
     </span>
   </div>

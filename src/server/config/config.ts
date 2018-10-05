@@ -19,6 +19,9 @@ interface IEnvironmentConfig {
   profitTotalAbsolute: number;
   startAsset: number;
   startCurrency: number;
+  timeStampAnalize: number;
+  timeStampFront: number;
+  timeAgoArbitrage: number;
 }
 
 interface IConfig {
@@ -43,13 +46,16 @@ const Config: IConfig = {
     wsProtocol: 'ws',
     forexApiKey: 'bfBuXo30skEAA0ES4Wz3lNQksUjcTuce',
     forexPairs: 'EURUSD,GBPUSD,USDJPY',
-    percentProfit: -0.2,
+    percentProfit: -0.15,
     deviationPrice: 0.05,
     tradeVolume: 1,
     fee: 0.01,
-    profitTotalAbsolute: -15,
+    profitTotalAbsolute: -22,
     startAsset: 10,
-    startCurrency: 50000
+    startCurrency: 50000,
+    timeStampAnalize: 1000,
+    timeStampFront: 5000,
+    timeAgoArbitrage: 1000
 
   },
   production: {
@@ -70,7 +76,10 @@ const Config: IConfig = {
     fee: +process.env.FEE,
     profitTotalAbsolute: +process.env.PROFIT_SECOND_CIRCLE,
     startAsset: +process.env.START_ASSET,
-    startCurrency: +process.env.START_CURRERCY
+    startCurrency: +process.env.START_CURRERCY,
+    timeStampAnalize: +process.env.TIME_STAMP_ANALIZE,
+    timeStampFront: +process.env.TIME_STAMP_FRONT,
+    timeAgoArbitrage: +process.env.TIME_AGO_ARBITRAGE
   }
 };
 

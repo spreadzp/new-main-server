@@ -1,3 +1,5 @@
+import { OrderBook } from './../common/models/orderBook';
+import { setInterval } from 'timers';
 import { MatrixService } from './../db/matrix/matrix.service';
 import { Exchange } from './../common/models/exchange';
 import { ExchangeService } from './../db/exchange/exchange.service';
@@ -17,6 +19,7 @@ import { TradeService } from '../db/trade/trade.service';
 import { PureTrade } from '../common/models/pureTrade';
 import * as dotenv from 'dotenv';
 import { Matrix } from '../common/models/matrix';
+import { Order5BookService } from '../db/orderBook_5/orderBook_5.service';
 dotenv.config();
 
 let responseForexResource: { responseContent: { body: number } };
@@ -24,6 +27,8 @@ let fiatPrices: [any][number];
 
 @Controller()
 export class Parser {
+    casheOrderBook: any[] = [];
+    casheOrderBook5: any[] = [];
     exchangeData: ExchangeData[] = [];
     stateTrading: StateTrading[] = [];
     forexLoader: ForexLoader;
@@ -38,6 +43,7 @@ export class Parser {
 
     constructor(
         private readonly orderBooksService: OrderBookService,
+        private readonly order5BooksService: Order5BookService,
         private readonly exchangeService: ExchangeService,
         private readonly arbitrageBalanceService: ArbitrageBalanceService,
         private readonly tradeService: TradeService,
@@ -67,6 +73,32 @@ export class Parser {
         }
     }
 
+    startSaverOrderBooks() {
+        setInterval(() => {
+            if (this.casheOrderBook.length) {
+                for (const data of this.casheOrderBook) {
+                    this.orderBooksService.addNewData(data);
+                }
+            }
+            this.casheOrderBook = [];
+        }, SERVER_CONFIG.timeStampAnalize);
+        setInterval(() => {
+            if (this.casheOrderBook5.length) {
+                for (const data5 of this.casheOrderBook5) {
+                    this.order5BooksService.addNewData(data5);
+                }
+            }
+            this.casheOrderBook5 = [];
+        }, SERVER_CONFIG.timeStampFront);
+        this.startReseterExchangeData();
+    }
+
+    startReseterExchangeData() {
+        setInterval(() => {
+            this.exchangeData = [];
+        }, SERVER_CONFIG.timeAgoArbitrage);
+    }
+
     addNewArbitrageTrade(trade: Trade) {
         // this.arbitrageBalanceService.
         return this.tradeService.convertToPureTrade(trade, this.rate);
@@ -93,7 +125,7 @@ export class Parser {
             this.getForexPrices();
         }
         if (newPrices.exchangePair[1] && fiatPrices) {
-            currentForexPair = this.getPriceFiatForex(newPrices.exchangePair[1]);
+            currentForexPair = this.getNameFiatForex(newPrices.exchangePair[1]);
             bids = this.convertToUsdPrice(currentForexPair, newPrices.orderBook.bids);
             asks = this.convertToUsdPrice(currentForexPair, newPrices.orderBook.asks);
 
@@ -118,7 +150,7 @@ export class Parser {
                     bidVolumes: orderBook.bids[0][1],
                     asks: asksNewOrder,
                     askVolumes: orderBook.asks[0][1],
-                    currentStatus: this.getCurrentPrice().length,
+                    currentStatus: Date.now(),
                     status: true,
                     spread: 0,
                     host: hostNewOrder,
@@ -137,15 +169,15 @@ export class Parser {
                     data.bidVolumes = orderBook.bids[0][1];
                     data.asks = asksNewOrder;
                     data.askVolumes = orderBook.asks[0][1];
-                    data.currentStatus = this.getCurrentPrice().length;
+                    data.currentStatus = Date.now();
                     data.host = hostNewOrder;
                     data.port = portNewOrder;
                     data.time = Date.now().toString();
                     createdExchangeField = true;
                 }
-                else {
-                    data.currentStatus -= 1;
-                }
+                /*  else {
+                     data.currentStatus -= 1;
+                 } */
             }
         }
         // если биржа новая те в this.exchangeData ее не было
@@ -160,7 +192,7 @@ export class Parser {
                     bidVolumes: orderBook.bids[0][1],
                     asks: asksNewOrder,
                     askVolumes: orderBook.asks[0][1],
-                    currentStatus: this.getCurrentPrice().length,
+                    currentStatus: Date.now(),
                     spread: 0,
                     host: hostNewOrder,
                     port: portNewOrder,
@@ -180,7 +212,7 @@ export class Parser {
     }
 
     private fromUsdToFiatPrice(exchangePair: any, currentPrice: any) {
-        const currentForexPair = this.getPriceFiatForex(exchangePair);
+        const currentForexPair = this.getNameFiatForex(exchangePair);
         if (currentForexPair && fiatPrices[currentForexPair]) {
             return (currentForexPair === 'USDJPY') ?
                 [[+currentPrice[0][0] * +fiatPrices[currentForexPair][0], 0]] :
@@ -232,7 +264,7 @@ export class Parser {
                     port: this.stateTrading[index].port,
                     arbitrageId: this.stateTrading[index].arbitrageId,
                     time: Date.now().toString(),
-                    status: 'formed',
+                    status: 'open',
                     reason: ''
                 };
                 orders.push(order);
@@ -325,7 +357,7 @@ export class Parser {
         // console.log('this.stateTrading :', this.stateTrading);
     }
 
-    getPriceFiatForex(fiat: string) {
+    getNameFiatForex(fiat: string) {
         if (fiatPrices) {
             const assetFiat = fiat.split('-');
             if (assetFiat[1] !== 'USD') {
@@ -338,6 +370,14 @@ export class Parser {
         }
     }
 
+    getShortCryptoName(pair: string) {
+        let cryptoName = pair.split('-')[0];
+        if (['XBT', 'someNameBtc'].indexOf(cryptoName) !== -1) {
+            cryptoName = 'BTC';
+        }
+        return cryptoName;
+    }
+
     addNewOrderBookData(): ExchangeData[] {
         if (this.exchangeData) {
             const currentOrderBooks = this.fetchOrderBook();
@@ -346,14 +386,32 @@ export class Parser {
                     if (iterator.bids !== 0 && iterator.asks !== 0) {
                         const newOrderBookData: any = {
                             exchangeName: iterator.exchange, pair: iterator.pair,
+                            crypto: this.getShortCryptoName(iterator.pair),
                             bid: iterator.bids, bidVolume: iterator.bidVolumes, ask: iterator.asks,
                             askVolume: iterator.askVolumes, time: Date.now(),
                         };
-                        this.orderBooksService.addNewData(newOrderBookData);
+                        this.addCasheOrderBook(newOrderBookData, this.casheOrderBook);
+                        this.addCasheOrderBook(newOrderBookData, this.casheOrderBook5);
+                        // this.orderBooksService.addNewData(newOrderBookData); // перенести в другое место сохранение
                     }
                 }
                 return currentOrderBooks;
             }
+        }
+    }
+
+    addCasheOrderBook(newOrderBookData: any, cashe: any[]) {
+        const index = cashe.findIndex(item => {
+            return item.exchangeName === newOrderBookData.exchangeName &&
+                item.pair === newOrderBookData.pair;
+        });
+        if (index !== -1) {
+            cashe[index].bid = (newOrderBookData.bid > cashe[index].bid) ?
+                newOrderBookData.bid : cashe[index].bid;
+            cashe[index].ask = (newOrderBookData.ask < cashe[index].ask) ?
+                newOrderBookData.ask : cashe[index].ask;
+        } else {
+            cashe.push(newOrderBookData);
         }
     }
 
@@ -368,7 +426,7 @@ export class Parser {
 
     getExchangePrice(exchange: string, pair: string, typePrice: string): ExchangeData {
         return this.exchangeData.find(data => {
-            return data.exchange === exchange && data.pair === pair && data.currentStatus > 0;
+            return data.exchange === exchange && data.pair === pair && data.currentStatus > (Date.now() - SERVER_CONFIG.timeAgoArbitrage);
         });
     }
 
@@ -376,7 +434,7 @@ export class Parser {
         return this.exchangeData.map(data => ({
             exchange: data.exchange, pair: data.pair, bids: data.bids[0][0], bidVolumes: data.bids[0][1], asks: data.asks[0][0],
             askVolumes: data.asks[0][1], spread: ((data.asks[0][0] / data.bids[0][0]) - 1) * 100, currentStatus: data.currentStatus,
-            status: data.currentStatus > 0, host: data.host, port: data.port, time: Date.now().toString(),
+            status: (data.currentStatus > Date.now() - SERVER_CONFIG.timeAgoArbitrage), host: data.host, port: data.port, time: Date.now().toString(),
         }));
     }
 
@@ -386,7 +444,7 @@ export class Parser {
         });
     }
 
-    // создание противоположного ордера на основании сделки из 1 полуцикла
+    // создание противоположного ордера для закрытия на основании сделки из 1 полуцикла
     convertPureTradeToOrder(trade: PureTrade, arbitId: string) {
         const currentExchange = this.getExchange(trade.exchange, trade.pair);
         const newTypeOrder = (trade.typeOrder === 'sell') ? 'buy' : 'sell';
@@ -410,7 +468,7 @@ export class Parser {
                     time: Date.now(),
                     host: currentExchange.host,
                     port: currentExchange.port,
-                    status: 'formed',
+                    status: 'open',
                     reason: ''
                 };
             }
@@ -418,7 +476,7 @@ export class Parser {
         }
     }
 
-    // закрытие 2 полуцикла 
+    // формируем ордера для закрытия 2 полуцикла
     closeSecondArbitrage(trades: PureTrade[], arbitrageId: string): any[] {
         const orders: any[] = [];
         for (const trade of trades) {
@@ -467,7 +525,7 @@ export class Parser {
         }
     }
 
-    /* проверка отпрвляли ли уже заявку 2 цикла на покупку */
+    /* проверка отправляли ли уже заявку 2 цикла на покупку */
     checkFullfiledArbitrage(arbitId: string) {
         const checkingOrder = this.sentOrders.find(order => order.arbitId === arbitId);
         // console.log(' ******* checkFullfiledArbitrage :', checkingOrder);
@@ -497,6 +555,10 @@ export class Parser {
         }
     }
 
+    defineMatrixesForPairExchange(pair: string, exch: string) {
+        const currentMatrixes = this.matrixes.filter(matrix => matrix.name === pair);  // matrix.)
+    }
+
     changeStatusInSentOrders(arbitId: string, typeOrder: string) {
         for (const sentOrder of this.sentOrders) {
             if (sentOrder.arbitId === arbitId) {
@@ -515,13 +577,10 @@ export class Parser {
         return notConfirmOrders;
     }
 
-    defineMatrixesForPairExchange(pair: string, exch: string) {
-        const currentMatrixes = this.matrixes.filter(matrix => matrix.name === pair);  // matrix.)
-    }
-
-    // вызвать getMatrix после строки 578?
-    async getCurrentArbitrage(): Promise<any[]> {
-
+    /* // вызвать getMatrix после строки 578?
+        здесь нужно брать данные из матрицы для вычисления закрытия 2 полуцикла
+     */
+    async getNotClosedArbitrage(): Promise<any[]> {
         let deltaProfit = 0;
 
         const circlesArray: CircleArbitrage[] = [];
@@ -567,7 +626,7 @@ export class Parser {
                             trade.firstCickleBuy.price * trade.firstCickleBuy.size,
                             closeSellPrice * trade.firstCickleSell.size, rateSell.takerFee,
                             closeBuyPrice * trade.firstCickleBuy.size, rateBuy.takerFee);
-                        // добавляем в массив возмохный 2 й полуцикл  для отправки на фронт
+                        // добавляем в массив возможный 2 й полуцикл  для отправки на фронт
                         circlesArray.push({
                             arbitrageId: trade.arbitrageId,
                             firstCircle: {
@@ -583,19 +642,12 @@ export class Parser {
                                 closeBuyRate: rateBuy
                             },
                         });
-                        /*   console.log('deltaProfit > +SERVER_CONFIG.profitTotalAbsolute :', trade.arbitrageId,
-                             deltaProfit > SERVER_CONFIG.profitTotalAbsolute, !this.checkFullfiledArbitrage(trade.arbitrageId)); */
-                        // если есть дельта выше заданной
-                        /* const matrixs = await this.getMatrix(trade.pair);
-                        console.log('matrixs :', matrixs); */
-                        //  console.log('deltaProfit > +SERVER_CONFIG.profitTotalAbsolute :', deltaProfit, +SERVER_CONFIG.profitTotalAbsolute);
                         if (deltaProfit > +SERVER_CONFIG.profitTotalAbsolute) {
                             console.log('profit !!!!', trade.arbitrageId);
                             // если не закрыты 2-е полуциклы (или 1 из них)
                             if (!this.checkFullfiledArbitrage(trade.arbitrageId)) {
                                 console.log(' // если не закрыты 2-е полуциклы (или 1 из них) :');
                                 const orders = [];
-                                // console.log('????? ******* cache :sentOrders after profit !!!!', this.sentOrders);
                                 // формируем заявки для 2 полуцикла для типов ордера еще не отправленного
                                 // null if second order sent
                                 const secondSell = this.checkSecondSell(trade.arbitrageId) ? null : closeSell;
@@ -611,15 +663,11 @@ export class Parser {
                                 // наполняем массив для отправки заявок
                                 if (secondBuy) {
                                     orders.push(secondBuy);
-                                    // currentOrder.secondBuyOrder = secondBuy.typeOrder === 'sell';
                                 } else {
                                     this.changeStatusInSentOrders(trade.arbitrageId, 'sell');
-                                    // currentOrder.secondBuyOrder = secondBuy.typeOrder === 'sell';
                                 }
                                 if (secondSell) {
                                     orders.push(secondSell);
-                                    // this.changeStatusInSentOrders(trade.arbitrageId, 'buy');
-                                    // currentOrder.secondSellOrder = secondSell.typeOrder === 'buy';
                                 } else {
                                     this.changeStatusInSentOrders(trade.arbitrageId, 'buy');
                                 }
@@ -632,11 +680,7 @@ export class Parser {
                                     // вызываем закрытие 2-го полуцикла
                                     console.log('вызываем закрытие 2-го полуцикла :');
                                     this.closeSecondOrders = this.closeSecondArbitrage(
-                                        orders, trade.arbitrageId, trade);
-                                    console.log('меняем статус заявки в БД как true - закрытый :');
-                                    // меняем статус заявки в БД как true - закрытый
-                                    // this.arbitrageBalanceService.closeSecondCircleStatus(trade.arbitrageId);
-                                    // this.removeCheckerSentOrders(trade.arbitrageId);
+                                        orders, trade.arbitrageId);
                                 } else {
 
                                 }
@@ -684,13 +728,13 @@ export class Parser {
             exchange: data.exchange, pair: data.pair, bids: this.fromUsdToFiatPrice(data.pair, data.bids), bidVolumes: data.bids[0][1],
             asks: this.fromUsdToFiatPrice(data.pair, data.asks), askVolumes: data.asks[0][1],
             spread: ((data.asks[0][0] / data.bids[0][0]) - 1) * 100, currentStatus: data.currentStatus,
-            status: data.currentStatus > 0, host: data.host, port: data.port, time: Date.now().toString(),
+            status: data.currentStatus > (Date.now() - SERVER_CONFIG.timeAgoArbitrage), host: data.host, port: data.port, time: Date.now().toString(),
         }));
     }
 
-    defineCurrentForexPair(cryptoPair: string) {
-        return this.getPriceFiatForex(cryptoPair);
-    }
+    /*    defineCurrentForexPair(cryptoPair: string) {
+        return this.getNameFiatForex(cryptoPair);
+    } */
 
     getCurrentPriceExchange(exchange: string, pair: string, typeTrade: string) {
         const exchangeItem = this.getCurrentFiatPrice().filter((exchangeData: ExchangeData) => {
@@ -763,7 +807,7 @@ export class Parser {
                 port: nextTrade.port,
                 arbitrageId: partialTrade.arbitrageId,
                 time: Date.now().toString(),
-                statusOrder: 'formed'
+                statusOrder: 'open'
             };
             partialOrder.push(order);
             // console.log('720partialOrder.push(order):', order);
@@ -788,7 +832,7 @@ export class Parser {
             price;
     }
 
-    // здесь нужно вызывать getMatrix? потом определять разницу цен внутри матрицы
+    // здесь нужно вызывать getMatrix  потом определять разницу цен внутри матрицы
     async defineSellBuy(result: ExchangeData[]) {
         let ordersBot: Order[];
         let maxBuyPrise: number;
@@ -860,9 +904,9 @@ export class Parser {
                         // if (freeAssets > Number(SERVER_CONFIG.tradeVolume) &&
                         // freeBuyerCurrency > maxBuyPrise * Number(SERVER_CONFIG.tradeVolume)) {
                         if (freeAssetSeller > Number(SERVER_CONFIG.tradeVolume) && freeCurrency > maxBuyPrise * Number(SERVER_CONFIG.tradeVolume)) {
-                            const buyForexPair: string = this.defineCurrentForexPair(buyExchange.pair);
+                            const buyForexPair: string = this.getNameFiatForex(buyExchange.pair);
                             const buyPrice = this.definePriceByForex(buyForexPair, maxBuyPrise);
-                            const sellForexPair = this.defineCurrentForexPair(sellExchange.pair);
+                            const sellForexPair = this.getNameFiatForex(sellExchange.pair);
                             const sellPrice = this.definePriceByForex(sellForexPair, minSellPrise);
                             const arbitrageUnicId = UUID.UUID();
 
@@ -883,7 +927,7 @@ export class Parser {
                                 port: sellExchange.port,
                                 arbitrageId: arbitrageUnicId,
                                 time: Date.now().toString(),
-                                statusOrder: 'formed'
+                                statusOrder: 'open'
                             };
                             const buyerOrder: any = {
                                 pair: buyExchange.pair,
@@ -900,7 +944,7 @@ export class Parser {
                                 port: buyExchange.port,
                                 arbitrageId: arbitrageUnicId,
                                 time: Date.now().toString(),
-                                statusOrder: 'formed'
+                                statusOrder: 'open'
                             };
                             return ordersBot = await this.setOrdersForTrade(sellerOrder, buyerOrder, sellExchange, marketSpread, buyExchange);
                             // console.log('ordersBot :', ordersBot);
@@ -911,9 +955,9 @@ export class Parser {
                     }
                     // если не было еще сделок
                     else {
-                        const buyForexPair: string = this.defineCurrentForexPair(buyExchange.pair);
+                        const buyForexPair: string = this.getNameFiatForex(buyExchange.pair);
                         const buyPrice = this.definePriceByForex(buyForexPair, maxBuyPrise);
-                        const sellForexPair = this.defineCurrentForexPair(sellExchange.pair);
+                        const sellForexPair = this.getNameFiatForex(sellExchange.pair);
                         const sellPrice = this.definePriceByForex(sellForexPair, minSellPrise);
                         const arbitrageUnicId = UUID.UUID();
 
@@ -934,7 +978,7 @@ export class Parser {
                             port: sellExchange.port,
                             arbitrageId: arbitrageUnicId,
                             time: Date.now().toString(),
-                            statusOrder: 'formed'
+                            statusOrder: 'open'
                         };
                         const buyerOrder: any = {
                             pair: buyExchange.pair,
@@ -951,7 +995,7 @@ export class Parser {
                             port: buyExchange.port,
                             arbitrageId: arbitrageUnicId,
                             time: Date.now().toString(),
-                            statusOrder: 'formed'
+                            statusOrder: 'open'
                         };
                         console.log(' @@############ first order :');
                         return ordersBot = await this.setOrdersForTrade(sellerOrder, buyerOrder, sellExchange, marketSpread, buyExchange);

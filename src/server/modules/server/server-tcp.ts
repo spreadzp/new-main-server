@@ -16,6 +16,7 @@ import { SERVER_CONFIG } from './../../server.constants';
 import { ArbitrageBalanceService } from '../db/arbit-balance/arbit-balance.service';
 import { PureTrade } from '../common/models/pureTrade';
 import { setInterval } from 'timers';
+import { Order5BookService } from '../db/orderBook_5/orderBook_5.service';
 
 const auth = new net.Auth('secretxxx');
 
@@ -31,12 +32,13 @@ export class ServerTcpBot {
 
   constructor(
     private readonly orderBooksService: OrderBookService,
+    private readonly order5BooksService: Order5BookService,
     private readonly orderService: OrderService,
     private readonly tradeService: TradeService,
     private readonly exchangeService: ExchangeService,
     private readonly arbitrageBalanceService: ArbitrageBalanceService,
     private readonly matrixService: MatrixService) {
-    this.parser = new Parser(this.orderBooksService, this.exchangeService, this.arbitrageBalanceService,
+    this.parser = new Parser(this.orderBooksService, this.order5BooksService, this.exchangeService, this.arbitrageBalanceService,
       this.tradeService, this.matrixService);
   }
 
@@ -46,7 +48,7 @@ export class ServerTcpBot {
     console.log('Arbitrage stoped');
   }
 
-   // разрешает ведение новых арбитражных сделок
+  // разрешает ведение новых арбитражных сделок
   startArbitrage() {
     this.avalableArbitrage = true;
     console.log('Arbitrage started');
@@ -58,7 +60,7 @@ export class ServerTcpBot {
     return [arbitrage.firstCickleSell, arbitrage.firstCickleBuy];
   }
 
-  // вызов с фронта закрытия 2 - го полуцикла 
+  // вызов с фронта закрытия 2 - го полуцикла
   async closeSecondArbitrage(trades: PureTrade[], arbitId: string) {
     const orders = await this.parser.closeSecondArbitrage(trades, arbitId);
     // console.log('==============object :', orders);
@@ -92,8 +94,8 @@ export class ServerTcpBot {
       const newOrderBook = this.parser.addNewOrderBookData();
       // if (this.avalableArbitrage) {
       newOrder = await this.parser.defineSellBuy(newOrderBook);
-      //  console.log('80parser.defineSellBuy:', newOrder);
-      // this.parser.removeCheckerSentOrders(trade.arbitrageId);
+      console.log(' 80parser.defineSellBuy:', newOrder);
+      //  this.parser.removeCheckerSentOrders(trade.arbitrageId);
       // }
     } else {
       if (this.avalableArbitrage) {
@@ -107,14 +109,20 @@ export class ServerTcpBot {
     }
   }
 
-  countPureTrade(trade: Trade) {
-    const pureTrade = this.parser.addNewArbitrageTrade(trade);
-    this.arbitrageBalanceService.addNewTrade(pureTrade, trade.arbitrageId);
-    this.parser.removeCheckerSentOrders(trade.arbitrageId);
+  async countPureTrade(trade: Trade) {
+    const sameTrade = await this.tradeService.findTrade(trade);
+    if (!sameTrade) {
+      console.log('sameTrade :', sameTrade);
+      const pureTrade = await this.parser.addNewArbitrageTrade(trade);
+      await this.arbitrageBalanceService.addNewTrade(pureTrade, trade.arbitrageId);
+      await this.parser.removeCheckerSentOrders(trade.arbitrageId);
+    } else {
+      this.checkOrder(trade.arbitrageId, trade.typeOrder, trade.exchange);
+    }
   }
 
   async sendOrdersFromPromise(newOrder: any) {
-    console.log('sendOrdersFromPromise call  :sendOrdersToBot');
+    console.log(' 125sendOrders  FromPromise call  :sendOrdersToBot');
     await this.sendOrdersToBot(newOrder, 'taker');
   }
 
@@ -135,6 +143,7 @@ export class ServerTcpBot {
   createTcpServer() {
     if (!this.server) {
       this.startServer();
+      this.parser.startSaverOrderBooks();
     } else if (!this.server.address()) {
       this.startServer();
     } else {
@@ -142,27 +151,38 @@ export class ServerTcpBot {
     }
   }
 
+  // запуск сервера для прослушивания по TCP  на порту сообщений
   startServer() {
     this.server = new net.Server((socket: any) => {
       socket.on('message', async (message: any) => {
+        // console.log('message : %j', message);
         if (message.type === 'notification' //  && message.payload.method === 'trades' ||
           && message.payload.method === 'partial' || message.payload.method === 'done') {
-          console.log('message.payload.method :', message.payload.method);
+          console.log(' message.payload.method :', message.payload.method);
           this.passTradeToDB(message, message.payload.method);
         }
         if (message.type === 'notification' && message.payload.method === 'resCheckOrder') {
-          const confirmedOrder = JSON.parse(message.payload.params[0]);
-          console.log('message : %j', message);
-          console.log('*********confirmedOrder.arbitrageId :', confirmedOrder.arbitrageId);
+          const confirmedOrder = message.payload.params[0];
           if (confirmedOrder) {
-            this.countPureTrade(confirmedOrder as Trade);
-            this.parser.removeCheckerSentOrders(confirmedOrder.arbitrageId);
-          }
+            console.log('confirmedOrder :',
+             confirmedOrder.arbitrageId, confirmedOrder.status, confirmedOrder.exchOrderId, confirmedOrder.typeOrder);
+            await this.orderService.updateStatusOrder(confirmedOrder.arbitrageId, confirmedOrder.typeOrder,
+              confirmedOrder.exchangeId, confirmedOrder.status, '');
+            if (confirmedOrder.status === 'notSend') {
+              console.log('!!!  confirmedOrder id status :', confirmedOrder.arbitrageId, confirmedOrder.status);
 
+            } else {
+              const trade = this.tradeService.findTrade(confirmedOrder);
+              if (trade) {
+                this.countPureTrade(confirmedOrder as Trade);
+                this.parser.removeCheckerSentOrders(confirmedOrder.arbitrageId);
+              }
+            }
+          }
         }
         if (message.type === 'notification' && message.payload.method === 'statusOrder') {
 
-          console.log('status=', message.payload.params[3]);
+          console.log('168 ########### status=', message.payload.params[3]);
           this.orderService.updateStatusOrder(message.payload.params[0], message.payload.params[1],
             message.payload.params[2], message.payload.params[3], message.payload.params[4]);
           if (message.payload.params[3] === 'open') {
@@ -187,11 +207,9 @@ export class ServerTcpBot {
           if (this.avalableArbitrage) {
             if (this.startFlag) {
               const orders = await this.parser.defineSellBuy(newOrderBook);
-              if (orders && this.startFlag) {
-                console.log('this.startFlag :', this.startFlag, this.avalableArbitrage);
-                this.sendOrdersToBot(orders);
-                this.startFlag = false;
-              }
+              console.log('this.startFlag :', this.startFlag, this.avalableArbitrage);
+              this.sendOrdersToBot(orders);
+              this.startFlag = false;
             }
           }
         }
@@ -239,20 +257,34 @@ export class ServerTcpBot {
   }
 
   async getCurrentArbitrage() {
-    const arbitrage = await this.parser.getCurrentArbitrage();
+    // получаем данные для фронта для незакрытых во 2 полуцикле сделок
+    const arbitrage = await this.parser.getNotClosedArbitrage();
+    const timeAfterSent = Date.now() - 60000;
+    const sentOpenOrders = await this.orderService.getSameStatusOrder('open', timeAfterSent);
+    if (sentOpenOrders.length) {
+      for (const sentOpenOrder of sentOpenOrders) {
+        // console.log('251check Order :', sentOpenOrder.arbitrageId, sentOpenOrder.typeOrder);
+        this.checkOrder(sentOpenOrder.arbitrageId, sentOpenOrder.typeOrder, sentOpenOrder.exchange);
+      }
+    }
+    // проверяем список отправленных но не подтвержденных ордеров 2 полуцикла
     const notConfirmedOrders = this.parser.expiredTimeSendNotConfirmOrders(Date.now());
     if (notConfirmedOrders.length) {
       for (const secondOrders of notConfirmedOrders) {
         this.checkOrder(secondOrders.arbitId, 'sell', secondOrders.secondBuyExchange);
         this.checkOrder(secondOrders.arbitId, 'buy', secondOrders.secondSellExchange);
+        // получаем список closeSecondOrders с ордерами по которым
+        // не было подтверждения сделки в течение 1 мин
         this.parser.setCurrentTimeSentOrder(Date.now(), secondOrders.arbitId);
+        // this.parser.closeSecondOrders = [];
       }
 
     }
     if (this.parser.closeSecondOrders.length && arbitrage.length) {
-      // console.log('getCurrentArbitrage : call sendOrdersToBot for this.parser.closeSecondOrders', this.parser.closeSecondOrders);
-
+      // если список closeSecondOrders есть то повторно отправляем неподтвержденные ордера на зенбот
+      console.log('269 sent new order :');
       this.sendOrdersToBot(this.parser.closeSecondOrders, 'taker');
+      // сразу обнуляем список closeSecondOrders
       this.parser.closeSecondOrders = [];
 
     }
@@ -285,7 +317,7 @@ export class ServerTcpBot {
     }
   }
 
-  startClient(order: any) {
+  async startClient(order: any) {
     try {
       if (order.host && order.serverPort) {
         const clientSocket = `tcp://${order.host}:${order.serverPort}`;
@@ -300,9 +332,16 @@ export class ServerTcpBot {
           currentClient.reconnect();
         });
         const stringOrder = JSON.stringify(order.order);
-        //  console.log('280 sent order :', order.nameOrder, order.order.arbitrageId, order.order.typeOrder);
-        currentClient.notification(order.nameOrder, [`${stringOrder}`]);
-        this.parser.changeStatusInSentOrders(order.order.arbitrageId, order.order.typeOrder);
+        // console.log('321 order.nameOrder :', order.nameOrder);
+        const countSentOpenOrders = await this.orderService.checkOpenOrders(order.order.arbitrageId, 'open', order.order.typeOrder);
+        if (order.nameOrder === 'checkOrder') {
+          // console.log('countSentOpenOrders  status', countSentOpenOrders, order.nameOrder);
+          currentClient.notification(order.nameOrder, [`${stringOrder}`]);
+        } else if (!countSentOpenOrders) {
+          console.log('  Sent Orders :', countSentOpenOrders, order.order.status);
+          await currentClient.notification(order.nameOrder, [`${stringOrder}`]);
+          await this.parser.changeStatusInSentOrders(order.order.arbitrageId, order.order.typeOrder);
+        }
       }
     } catch (e) {
       console.log('err :', e);

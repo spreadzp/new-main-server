@@ -42,7 +42,7 @@ content-type: application/json
 { 
    "exchangeName": "bitfinex",
     "pair": "BTC-GDP",
-    "bid": 6201.56,
+    "bid": 6201.56
     "ask": 6215.15,
     "time": "1530262758920"
 }
@@ -62,7 +62,7 @@ content-type: application/json
     "time": "1531474565317"
 }
 
-POST http://localhost:3001/rates/create HTTP/1.1
+POST http://104.236.46.56:3001/rates/create HTTP/1.1
 content-type: application/json
 
 { 
@@ -71,7 +71,7 @@ content-type: application/json
    "takerFee": 0.1
 }
 
-POST http://localhost:3001/rates/save HTTP/1.1
+POST http://104.236.46.56:3001/rates/save HTTP/1.1
 content-type: application/json
 
 { 
@@ -80,7 +80,7 @@ content-type: application/json
    "takerFee": 0.1
 }
 
-POST http://localhost:3001/rates/save HTTP/1.1
+POST http://104.236.46.56:3001/rates/save HTTP/1.1
 content-type: application/json
 
 { 
@@ -227,3 +227,19 @@ content-type: application/json
 
 Get http://localhost:3001/matrix/available
 Get http://localhost:3001/rates/all
+
+GET http://104.236.46.56:3001/orderBooks/ob-period/?startDate=1537909844772&endDate=1537910489544&asset=BTC
+
+POST http://localhost:3001/order5Books/create HTTP/1.1
+content-type: application/json
+
+{ 
+   "exchangeName": "bitfinex",
+    "pair": "BTC-GDP",
+    "crypto": "BTC",
+    "bid": 6201.56,
+    "bidVolume": 1.1,
+    "ask": 6215.15,
+    "askVolume": 2.3,
+    "time": "1530262758920"
+}

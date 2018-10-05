@@ -17,12 +17,14 @@ import { ArbitrageBalanceModule } from './modules/db/arbit-balance/arbit-balance
 import { AngularUniversalModule } from './modules/angular-universal/angular-universal.module';
 import { GraphqlModule } from './modules/graphql/graphql.module';
 import { SERVER_CONFIG } from './server.constants';
+import { Order5BookModule } from './modules/db/orderBook_5/orderBook_5.module';
 
 @Module({
   imports: [
     MatrixModule,
     ExchangeModule,
     OrderBookModule,
+    Order5BookModule,
     OrderModule,
     AuthModule,
     UserModule,

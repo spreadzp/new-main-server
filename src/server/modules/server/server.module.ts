@@ -15,6 +15,7 @@ import { ArbitrageBalanceSchema } from '../db/arbit-balance/shemas/arbit-balance
 import { ArbitrageBalanceService } from '../db/arbit-balance/arbit-balance.service';
 import { MatrixService } from './../db/matrix/matrix.service';
 import { MatrixSchema } from './../db/matrix/shemas/matrix.shema';
+import { Order5BookService } from '../db/orderBook_5/orderBook_5.service';
 
 @Module({
   imports: [MongooseModule.forFeature([
@@ -24,9 +25,10 @@ import { MatrixSchema } from './../db/matrix/shemas/matrix.shema';
     { name: 'Exchange', schema: ExchangeSchema },
     { name: 'ArbitrageBalance', schema: ArbitrageBalanceSchema },
     { name: 'Matrix', schema: MatrixSchema },
+    { name: 'Order5Book', schema: OrderBookSchema },
   ])],
   controllers: [ServerTcpController],
   providers: [OrderBookService, OrderService, TradeService, ExchangeService,
-     ArbitrageBalanceService, MatrixService],
+     ArbitrageBalanceService, MatrixService, Order5BookService],
 })
 export class ServerTcpModule { }

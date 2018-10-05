@@ -63,20 +63,25 @@ export class TradeService {
       }).exec();
   }
 
-  convertToPureTrade(trade: Trade, rate: Exchange[]): PureTrade {
-    const rates  = rate.find(rateExc => rateExc.exchangeName === trade.exchange);
+  async convertToPureTrade(trade: Trade, rate: Exchange[]): Promise<PureTrade> {
+    const rates = await rate.find(rateExc => rateExc.exchangeName === trade.exchange);
+
     const rateValue = (trade.typeOrder === 'sell') ? (1 - rates.makerFee / 100) : (1 + rates.takerFee / 100);
     const pureTrade: PureTrade = {
-    exchange: trade.exchange,
-    exchangeId: trade.exchOrderId,
-    pair: trade.pair,
-    price: trade.price * rateValue,
-    size: trade.size,
-    typeOrder: trade.typeOrder
+      exchange: trade.exchange,
+      exchangeId: trade.exchOrderId,
+      pair: trade.pair,
+      price: trade.price * rateValue,
+      size: trade.size,
+      typeOrder: trade.typeOrder
     };
-    return pureTrade;
+    return await pureTrade;
   }
 
+  async findTrade(trade: Trade) {
+    const findTheTrade = await this.tradeModel.findOne({ arbitrageId: trade.arbitrageId, exchange: trade.exchange, typeOrder: trade.typeOrder });
+    return findTheTrade;
+  }
   /* convertToPureTrade(trade: Trade, rateService: RateService): PureTrade {
     let pureTrade: PureTrade;
     

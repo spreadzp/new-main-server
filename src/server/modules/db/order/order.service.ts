@@ -43,4 +43,23 @@ export class OrderService {
         arbitrageId: 1, exchangeId: 1, deviationPrice: 1, time: 1, status: 1, reason: 1
       }).exec();
   }
+
+  async getSameStatusOrder(searchStatus: string, comparedTime: number): Promise<Order[]> {
+    return await this.orderModel.find({ status: searchStatus, time: {$lt: comparedTime } },
+      {
+        _id: 0, exchange: 1, pair: 1, price: 1, size: 1, typeOrder: 1, statusOrder: 1,
+        arbitrageId: 1, exchangeId: 1, time: 1, status: 1, host: 1, port: 1
+      }).exec();
+  }
+
+  async getSameStatusOrders(searchStatus: string, comparedTime: number, typeSendOrder: string): Promise<Order[]> {
+    return await this.orderModel.find({ status: searchStatus, time: {$lt: comparedTime }, typeOrder: typeSendOrder},
+      {
+        _id: 0, exchange: 1, pair: 1, price: 1, size: 1, typeOrder: 1, statusOrder: 1,
+        arbitrageId: 1, exchangeId: 1, time: 1, status: 1, host: 1, port: 1
+      }).exec();
+  }
+  async checkOpenOrders(id: string, searchStatus: string, typeSendOrder: string): Promise<number> {
+    return await this.orderModel.find({arbitrageId: id, status: searchStatus, typeOrder: typeSendOrder}).count();
+  }
 }

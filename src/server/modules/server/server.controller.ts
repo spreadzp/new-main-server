@@ -7,6 +7,7 @@ import { OrderService } from './../db/order/order.service';
 import { TradeService } from './../db/trade/trade.service';
 import { ArbitrageService } from '../db/arbitrage/arbitrage.service';
 import { ArbitrageBalanceService } from '../db/arbit-balance/arbit-balance.service';
+import { Order5BookService } from '../db/orderBook_5/orderBook_5.service';
 
 @Controller('sever-tcp')
 export class ServerTcpController {
@@ -14,6 +15,7 @@ export class ServerTcpController {
 
     constructor(
         private readonly orderBooksService: OrderBookService,
+        private readonly order5BooksService: Order5BookService,
         private readonly orderService: OrderService,
         private readonly tradeService: TradeService,
         private readonly exchangeService: ExchangeService,
@@ -21,7 +23,7 @@ export class ServerTcpController {
         private readonly matrixService: MatrixService
     ) {
         this.serverTcp = new ServerTcpBot(
-            this.orderBooksService, this.orderService, this.tradeService,
+            this.orderBooksService, this.order5BooksService, this.orderService, this.tradeService,
              this.exchangeService, this.arbitrageBalanceService, this.matrixService);
     }
 
